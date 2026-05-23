@@ -180,7 +180,7 @@
         } else {
           precoFinal = `De ~~R$ ${vals[0]}/mês~~ por apenas R$ ${
             vals[vals.length - 1]
-          }/mês até o fim do curso.\n\n(Sujeito apenas ao reajuste anual).`;
+          }/mês até o fim do curso.\n\n(Sujeito apenas ao reajuste anual).\n\n🍃 Condição opcional Parcela Leve: Comece pagando apenas R$ 79,00 nos 3 primeiros meses com o nosso facilitador de ingresso!`;
         }
 
         const msg =
