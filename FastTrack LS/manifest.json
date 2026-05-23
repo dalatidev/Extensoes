@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "FastTrack LS",
+  "version": "1.1",
+  "description": "Assistente de produtividade para o processo de vendas e matrículas.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "clipboardWrite"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}
