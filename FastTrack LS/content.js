@@ -176,15 +176,15 @@
         if (vals.length >= 4 && meses.length >= 5) {
           precoFinal = `📅 Do 1° ao ${meses[3]}° mês:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês\n\n📅 Do ${meses[4]}° mês até o fim do curso:\nPor apenas R$ ${vals[3]}/mês\n\n(Sujeito apenas ao reajuste anual).`;
         } else if (vals.length >= 3 && meses.length >= 3) {
-          precoFinal = `📅 Mensalidade do 1º mês até o fim:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês\n\n(Sujeito apenas ao reajuste anual).`;
+          precoFinal = `📅 Mensalidade do 1º mês até o fim:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês`;
         } else {
           precoFinal = `De ~~R$ ${vals[0]}/mês~~ por apenas R$ ${
             vals[vals.length - 1]
-          }/mês até o fim do curso.\n\n(Sujeito apenas ao reajuste anual).\n\n🍃 Condição opcional Parcela Leve: Comece pagando apenas R$ 79,00 nos 3 primeiros meses com o nosso facilitador de ingresso!`;
+          }/mês até o fim do curso.\n\nE você ainda pode contar com o programa Parcela Leve, pagando a primeira ou até as três primeiras mensalidades no valor de R$ 79,00 cada, sendo o restante deduzido do valor integral da mensalidade e diluído ao longo do seu curso. Vale lembrar que, conforme previsto em contrato, as mensalidades, incluindo a parte diluída, estão sujeitas a reajustes anuais.`;
         }
 
         const msg =
-          "⚡ CONDIÇÕES ESPECIAIS\n\n🎓 Curso: " +
+          "⚡ CONDIÇÕES ESPECIAIS\n🎓 Curso: " +
           cur +
           "\n📖 Forma de Oferta: " +
           lines[0] +
@@ -198,7 +198,7 @@
           lines[lines.length - 1] +
           "\n\n" +
           precoFinal +
-          "\n\n🚀 Quer garantir essa oferta hoje, antes que as vagas acabem? Responda SIM que eu te ajudo com os próximos passos!";
+          "\n\n🚀 Para garantir essas ofertas do dia vamos seguir com sua inscrição?";
         await navigator.clipboard.writeText(msg);
         this.innerText = "✅ COPIADO!";
         setTimeout(() => render("ext"), 2000);
@@ -307,13 +307,13 @@
           );
           return idx !== -1 && lines[idx + 1] ? lines[idx + 1] : "[---]";
         };
-        const msg = `✅ Inscrição Realizada com Sucesso!\n\nNome: ${f(
+        const msg = `Parabéns por dar esse passo, ${f(
           "Nome da conta"
-        )}\nCurso: ${f("Curso")}\nCampus: ${f("Campus / Polo")}\nTurno: ${f(
+        )}! 🥳📋\nSua inscrição foi realizada com sucesso! Aqui está o resumo das suas escolhas:\n\nCurso: ${f("Curso")}\nForma de oferta: ${f("Modelo de Ensino")} - ${f(
           "Turno"
-        )}\nForma de oferta: ${f("Modelo de Ensino")}\nNúmero de inscrição: ${f(
+        )}\nUnidade: ${f("Campus / Polo")}\nNúmero de inscrição: ${f(
           "Oportunidade"
-        )}\n\n🚀 Próximo Passo: Pagamento\nVocê acaba de garantir a sua inscrição, dando o primeiro passo rumo ao seu futuro! Para assegurar as condições informadas, realize agora o pagamento da sua primeira mensalidade.\n\nVocê consegue efetuar o pagamento agora?`;
+        )}\n\nPara garantir as ofertas e os descontos especiais da sua inscrição, lembre-se de realizar o pagamento até o vencimento. Segue o link direto, de forma rápida e segura: 🔗 [Inserir Link]\n\nPara o envio de documentos, você pode acessar o Portal do Candidato: 🔗 https://candidatos.portal.estacio.br/acompanhe-sua-matricula. É só entrar com seu CPF, criar uma senha para dar o aceite no contrato e anexar os documentos obrigatórios.\n\nAssim que os documentos forem enviados, nossa área acadêmica fará a análise deles. Depois, com a formação da sua turma, sua matrícula oficial será gerada! 🎉\n\nFicou com alguma dúvida sobre como funciona esse processo após a inscrição?`;
         await navigator.clipboard.writeText(msg);
         this.innerText = "✅ COPIADO!";
         setTimeout(() => render("check"), 2000);
