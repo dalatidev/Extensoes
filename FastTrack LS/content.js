@@ -307,13 +307,42 @@
           );
           return idx !== -1 && lines[idx + 1] ? lines[idx + 1] : "[---]";
         };
+
+        // --- NOVA FUNCIONALIDADE: CAPTURA PROFUNDA DO LINK VIA SHADOW DOM ---
+        let linkPagamento = "[Link não encontrado na tela da oportunidade]";
+        
+        function buscarLinkProfundo(root) {
+          if (!root) return null;
+          const link = root.querySelector('a[href*="pagamentos.estacio.br"]');
+          if (link) return link;
+          const elementos = [...root.querySelectorAll('*')];
+          for (let el of elementos) {
+            if (el.shadowRoot) {
+              const achou = buscarLinkProfundo(el.shadowRoot);
+              if (achou) return achou;
+            }
+          }
+          return null;
+        }
+
+        try {
+          const resultado = buscarLinkProfundo(document);
+          if (resultado && resultado.href) {
+            linkPagamento = resultado.href;
+          }
+        } catch (e) {
+          console.error("Erro ao varrer o Salesforce:", e);
+        }
+        // --------------------------------------------------------------------
+
         const msg = `Parabéns por dar esse passo, ${f(
           "Nome da conta"
         )}! 🥳📋\nSua inscrição foi realizada com sucesso! Aqui está o resumo das suas escolhas:\n\nCurso: ${f("Curso")}\nForma de oferta: ${f("Modelo de Ensino")} - ${f(
           "Turno"
         )}\nUnidade: ${f("Campus / Polo")}\nNúmero de inscrição: ${f(
           "Oportunidade"
-        )}\n\nPara garantir as ofertas e os descontos especiais da sua inscrição, lembre-se de realizar o pagamento até o vencimento. Segue o link direto, de forma rápida e segura: 🔗 [Inserir Link]\n\nPara o envio de documentos, você pode acessar o Portal do Candidato: 🔗 https://candidatos.portal.estacio.br/acompanhe-sua-matricula. É só entrar com seu CPF, criar uma senha para dar o aceite no contrato e anexar os documentos obrigatórios.\n\nAssim que os documentos forem enviados, nossa área acadêmica fará a análise deles. Depois, com a formação da sua turma, sua matrícula oficial será gerada! 🎉\n\nFicou com alguma dúvida sobre como funciona esse processo após a inscrição?`;
+        )}\n\nPara garantir as ofertas e os descontos especiais da sua inscrição, lembre-se de realizar o pagamento até o vencimento. Segue o link direto, de forma rápida e segura: 🔗 ${linkPagamento}\n\nPara o envio de documentos, você pode acessar o Portal do Candidato: 🔗 https://candidatos.portal.estacio.br/acompanhe-sua-matricula. É só entrar com seu CPF, criar uma senha para dar o aceite no contrato e anexar os documentos obrigatórios.\n\nAssim que os documentos forem enviados, nossa área acadêmica fará a análise deles. Depois, com a formação da sua turma, sua matrícula oficial será gerada! 🎉\n\nFicou com alguma dúvida sobre como funciona esse processo após a inscrição?`;
+        
         await navigator.clipboard.writeText(msg);
         this.innerText = "✅ COPIADO!";
         setTimeout(() => render("check"), 2000);
