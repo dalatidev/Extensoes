@@ -174,9 +174,9 @@
         let precoFinal = "";
 
         if (vals.length >= 4 && meses.length >= 5) {
-          precoFinal = `📅 Do 1° ao ${meses[3]}° mês:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês\n\n📅 Do ${meses[4]}° mês até o fim do curso:\nPor apenas R$ ${vals[3]}/mês\n\n(Sujeito apenas ao reajuste anual).`;
+          precoFinal = `📅 Do 1° ao ${meses[3]}° mês:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês\n\n📅 Do ${meses[4]}° mês até o fim do curso:\nPor apenas R$ ${vals[3]}/mês\n\nE você ainda pode contar com o programa Parcela Leve, pagando a primeira ou até as três primeiras mensalidades no valor de R$ 79,00 cada, sendo o restante deduzido do valor integral da mensalidade e diluído ao longo do seu curso. Vale lembrar que, conforme previsto em contrato, as mensalidades, incluindo a parte diluída, estão sujeitas a reajustes anuais.`;
         } else if (vals.length >= 3 && meses.length >= 3) {
-          precoFinal = `📅 Mensalidade do 1º mês até o fim:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês`;
+          precoFinal = `📅 Mensalidade do 1º mês até o fim:\nDe ~~R$ ${vals[0]}/mês~~ por apenas R$ ${vals[2]}/mês\n\nE você ainda pode contar com o programa Parcela Leve, pagando a primeira ou até as três primeiras mensalidades no valor de R$ 79,00 cada, sendo o restante deduzido do valor integral da mensalidade e diluído ao longo do seu curso. Vale lembrar que, conforme previsto em contrato, as mensalidades, incluindo a parte diluída, estão sujeitas a reajustes anuais.`;
         } else {
           precoFinal = `De ~~R$ ${vals[0]}/mês~~ por apenas R$ ${
             vals[vals.length - 1]
