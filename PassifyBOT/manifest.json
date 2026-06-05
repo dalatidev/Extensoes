@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Passify - Motor de Automação Blip",
   "version": "1.2",
-  "description": "Automação de triagem robusta em segundo plano",
+  "description": "Automação de triagem robusta com Firebase Local",
   "permissions": [
     "storage",
     "tabs",
