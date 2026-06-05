@@ -10,7 +10,6 @@
     div.style.width = '310px';
     div.style.background = 'rgba(255, 255, 255, 0.9)';
     div.style.backdropFilter = 'blur(16px)';
-    div.style.webkitBackdropFilter = 'blur(16px)';
     div.style.border = '1px solid rgba(226, 232, 240, 0.8)';
     div.style.borderRadius = '14px';
     div.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08)';
@@ -37,7 +36,7 @@
 
     document.body.appendChild(div);
  
-    let isRunning = false;
+    let localRunning = false;
     const btn = document.getElementById('bot-ui-btn');
     const logDiv = document.getElementById('bot-ui-log');
     const previewDiv = document.getElementById('bot-ui-preview');
@@ -47,67 +46,51 @@
  
     function setLog(text) { logDiv.innerHTML = text; }
  
-    // Configurações do banco mantidas do original
-    const firebaseConfig = {
-        apiKey: "AIzaSyBNLdfRTpJbrdKOwkW4TPfK2d6lVCZxoyY",
-        authDomain: "passify-2026-tf.firebaseapp.com",
-        databaseURL: "https://passify-2026-tf-default-rtdb.firebaseio.com/",
-        projectId: "passify-2026-tf",
-        storageBucket: "passify-2026-tf.firebasestorage.app",
-        messagingSenderId: "784145166265",
-        appId: "1:784145166265:web:3e3987612982f016fe9068"
-    };
- 
-    let database = null;
- 
-    function iniciarFirebase() {
-        const fbContexto = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
-        if (fbContexto && !database) {
-            const app = fbContexto.initializeApp(firebaseConfig);
-            database = fbContexto.database(app);
-        }
-    }
- 
-    function atualizarStatusGlobalBot(status) {
-        iniciarFirebase();
-        if (database) {
-            database.ref('status_do_bot').set(status);
-        }
-    }
- 
-    function stopPassifyBot() {
-        isRunning = false;
+    function stopLocalBot() {
+        localRunning = false;
         btn.textContent = 'Iniciar Ciclo';
         btn.style.background = '#0f172a';
         btn.style.color = '#fff';
         btn.style.border = 'none';
         previewDiv.style.display = 'none';
         setLog('Robô desligado.');
-        atualizarStatusGlobalBot('Desligado');
+        chrome.runtime.sendMessage({ action: "STOP_BOT" });
     }
  
     closeBtn.onclick = function() {
-        stopPassifyBot();
-        document.getElementById('passify-bot-ui').remove();
+        stopLocalBot();
+        div.remove();
     };
 
     btn.onclick = function() {
-        if (!isRunning) {
-            isRunning = true;
+        if (!localRunning) {
+            localRunning = true;
             btn.textContent = 'Parar Bot';
             btn.style.background = '#f1f5f9';
             btn.style.color = '#0f172a';
             btn.style.border = '1px solid #cbd5e1';
             setLog('🤖 Ciclo iniciado! Conectando...');
-            atualizarStatusGlobalBot('Funcionando');
-            procurarProximoTicket();
+            chrome.runtime.sendMessage({ action: "START_BOT" });
         } else {
-            atualizarStatusGlobalBot('Inativo');
-            stopPassifyBot();
+            stopLocalBot();
         }
     };
+
+    // Ouvinte de ordens vindas do Background Script
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === "UPDATE_LOG") {
+            setLog(message.text);
+        }
+        if (message.action === "EXECUTE_TRANSFER") {
+            ticketDiv.textContent = message.originalTicketStr;
+            filaDiv.textContent = message.fila;
+            previewDiv.style.display = 'block';
+            
+            executarAutomacaoNoBlip(message.idBanco, message.ticket, message.fila);
+        }
+    });
  
-    // --- FUNÇÕES DE NAVEGAÇÃO DOM / SHADOW DOM ---
+    // --- FUNÇÕES DE NAVEGAÇÃO DOM / SHADOW DOM (FIÉIS AO SEU ORIGINAL) ---
     function findInputDeep(root=document) {
         const input = root.querySelector('input[placeholder*="Nº do ticket"]');
         if (input) return input;
@@ -162,9 +145,7 @@
     }
  
     function copiarParaAreaTransferencia(texto) {
-        navigator.clipboard.writeText(texto)
-            .then(() => console.log(`Copiado: ${texto}`))
-            .catch(err => console.error('Erro clipboard:', err));
+        navigator.clipboard.writeText(texto).catch(err => console.error('Erro clipboard:', err));
     }
  
     function findQueueInputDeep(root=document) {
@@ -193,59 +174,16 @@
         return null;
     }
  
-    // --- PROCESSAMENTO PRINCIPAL ---
-    async function procurarProximoTicket() {
-        if (!isRunning) return;
- 
-        try {
-            iniciarFirebase();
-            
-            if (!database) {
-                setLog('Aguardando inicialização do Banco...');
-                setTimeout(procurarProximoTicket, 1000);
-                return;
-            }
- 
-            setLog('⏳ Buscando ticket pendente...');
- 
-            database.ref('tickets_para_transferir').orderByChild('status').equalTo('Pendente').limitToFirst(1).once('value', async (snapshot) => {
-                if (!snapshot.exists()) {
-                    setLog('💤 Fila vazia. Aguardando operadores...');
-                    previewDiv.style.display = 'none';
-                    setTimeout(procurarProximoTicket, 3000);
-                    return;
-                }
- 
-                const idBanco = Object.keys(snapshot.val())[0];
-                const atual = snapshot.val()[idBanco];
- 
-                const numLimpo = atual.ticket.replace('#', '');
-                ticketDiv.textContent = atual.ticket;
-                filaDiv.textContent = atual.fila;
-                previewDiv.style.display = 'block';
- 
-                await executarAutomacaoNoBlip(idBanco, numLimpo, atual.fila);
-            }, (error) => {
-                setLog('❌ Erro Firebase: ' + error.message);
-                stopPassifyBot();
-            });
- 
-        } catch (e) {
-            setLog('❌ Erro de ciclo: ' + e.message);
-            stopPassifyBot();
-        }
-    }
- 
+    // --- EXECUÇÃO DE INTERAÇÃO COM A TELA ---
     async function executarAutomacaoNoBlip(idBanco, ticket, fila) {
         try {
             let filaAlvo = fila;
- 
             setLog(`🔍 Filtrando ticket #${ticket}...`);
             let searchInput = findInputDeep();
  
             if (!searchInput) {
                 setLog('❌ Erro: Barra de busca oculta.');
-                stopPassifyBot();
+                stopLocalBot();
                 return;
             }
  
@@ -253,20 +191,19 @@
             searchInput.value = ticket;
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             searchInput.dispatchEvent(new Event('change', { bubbles: true }));
- 
             searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
  
             setLog('⏳ Aguardando filtro do Blip renderizar...');
             await new Promise(r => setTimeout(r, 2000));
  
-            if (!isRunning) return;
+            if (!localRunning) return;
  
             if (filaAlvo === "Pausa 20 / Fim de expediente") {
-                setLog(`⏳ Analisando linha filtrada para capturar origem...`);
+                setLog(`⏳ Analisando linha filtrada...`);
                 let filaDetectada = null;
                 let tentativas = 0;
  
-                while (!filaDetectada && tentativas < 15 && isRunning) {
+                while (!filaDetectada && tentativas < 15 && localRunning) {
                     filaDetectada = findQueueByTicketNumber(ticket);
                     if (!filaDetectada) {
                         await new Promise(r => setTimeout(r, 400));
@@ -276,46 +213,34 @@
  
                 if (filaDetectada) {
                     filaAlvo = filaDetectada;
-                    setLog(`🎯 <span style="color:#10b981"><b>Fila Capturada:</b> ${filaAlvo}</span>`);
+                    setLog(`🎯 <span style="color:#10b981"><b>Fila:</b> ${filaAlvo}</span>`);
                     copiarParaAreaTransferencia(filaAlvo);
                     filaDiv.textContent = filaAlvo;
                     await new Promise(r => setTimeout(r, 600));
                 } else {
-                    setLog('⚠️ <span style="color:#ef4444"><b>Erro:</b> Linha correspondente não apareceu.</span> Pulando...');
-                    await database.ref(`tickets_para_transferir/${idBanco}`).update({ status: "Não localizado no Blip" });
-                    previewDiv.style.display = 'none';
-                    setTimeout(procurarProximoTicket, 2000);
+                    // Como o Firebase está no background, mandamos uma requisição de update via fetch ou deixamos o background cuidar.
+                    // Para manter simples e fiel, faremos um fetch parcial ou um aviso. 
+                    setLog('⚠️ Não localizado na tela. Ignorando...');
+                    chrome.runtime.sendMessage({ action: "TICKET_PROCESSED" });
                     return;
                 }
-            } else {
-                setLog(`⚙️ Direcionando para destino informado (<b>${filaAlvo}</b>)`);
             }
  
-            if (!isRunning) return;
+            if (!localRunning) return;
  
-            setLog('📂 Abrindo painel de transferência...');
             const transferBtn = findTransferButtonDeep();
- 
             if (!transferBtn) {
-                setLog(`⚠️ Botão de transferir não encontrado na linha. Pulando...`);
-                await database.ref(`tickets_para_transferir/${idBanco}`).update({ status: "Indisponível no Blip" });
-                previewDiv.style.display = 'none';
-                setTimeout(procurarProximoTicket, 2000);
+                setLog(`⚠️ Botão transferir ausente.`);
+                chrome.runtime.sendMessage({ action: "TICKET_PROCESSED" });
                 return;
             }
  
             transferBtn.click();
-            setLog('⏳ Aguardando abertura do modal...');
             await new Promise(r => setTimeout(r, 1800));
  
-            if (!isRunning) return;
- 
-            setLog(`🏷️ Inserindo fila destino: <b>${filaAlvo}</b>...`);
             const queueInput = findQueueInputDeep();
- 
             if (!queueInput) {
-                setLog('❌ Erro: Campo de seleção de fila sumiu.');
-                stopPassifyBot();
+                setLog('❌ Erro: Campo fila sumiu.');
                 return;
             }
  
@@ -323,19 +248,14 @@
             queueInput.value = filaAlvo;
             queueInput.dispatchEvent(new Event('input', { bubbles: true }));
             queueInput.dispatchEvent(new Event('change', { bubbles: true }));
- 
-            setLog('⏳ Vinculando dropdown...');
             await new Promise(r => setTimeout(r, 1000));
  
             const option = document.querySelector('bds-select-option') || document.querySelector('[part="option"]');
             if (option) option.click();
  
             await new Promise(r => setTimeout(r, 1200));
-            if (!isRunning) return;
  
-            setLog('🚀 Confirmando envio...');
             let clicou = false;
- 
             for (let i = 0; i < 10; i++) {
                 const finalBtn = findAnyFinalButton();
                 if (finalBtn) {
@@ -350,38 +270,13 @@
                 await new Promise(r => setTimeout(r, 200));
             }
  
-            if (!clicou) {
-                setLog('⚠️ Tentando atalho via Teclado...');
-                queueInput.focus();
-                queueInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', keyCode: 9, bubbles: true }));
-                await new Promise(r => setTimeout(r, 100));
-                document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', keyCode: 9, bubbles: true }));
-                await new Promise(r => setTimeout(r, 100));
-                document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
-            }
- 
-            setLog('🧹 Finalizando registro no Firebase...');
-            await database.ref(`tickets_para_transferir/${idBanco}`).update({ status: "Concluído" });
- 
-            setLog('✅ Concluído com sucesso! Próximo em 2s...');
-            await new Promise(r => setTimeout(r, 2000));
- 
-            if (isRunning) {
-                previewDiv.style.display = 'none';
-                procurarProximoTicket();
-            }
+            setLog('✅ Ação executada na página!');
+            
+            // Avisa o Background que a aba terminou a parte dela. O Background atualiza o Firebase e reinicia o ciclo.
+            chrome.runtime.sendMessage({ action: "TICKET_PROCESSED" });
  
         } catch (err) {
-            setLog('❌ Erro na execução: ' + err.message);
-            stopPassifyBot();
+            setLog('❌ Erro na execução da aba: ' + err.message);
         }
     }
- 
-    // Mantém a autenticação da rede interna ativa
-    setInterval(function() {
-        fetch('http://sophosweb.grupoelo.com:8090/')
-            .then(() => console.log('Ping de rede enviado.'))
-            .catch(() => console.log('Tráfego gerado para manutenção de rede.'));
-    }, 300000);
- 
 })();
