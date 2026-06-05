@@ -1,10 +1,5 @@
-// ============================================================================
-// PASSO 1: INJECTE O CONTEÚDO DO FIREBASE AQUI NO TOPO
-// Abra o arquivo 'firebase-app-compat.js' que você baixou, copie TUDO e cole aqui.
-// Em seguida, abra o 'firebase-database-compat.js', copie TUDO e cole logo abaixo.
-// ============================================================================
-
-// --- ABAIXO DO CÓDIGO DO FIREBASE, COLE A LÓGICA DO PASSIFY: ---
+// Importa os arquivos locais do Firebase para o segundo plano
+importScripts('firebase-app-compat.js', 'firebase-database-compat.js');
 
 const firebaseConfig = {
     apiKey: "AIzaSyBNLdfRTpJbrdKOwkW4TPfK2d6lVCZxoyY",
@@ -21,13 +16,14 @@ let isRunning = false;
 let blipTabId = null;
 
 function iniciarFirebase() {
+    // Como os arquivos foram importados acima, o objeto 'firebase' fica disponível globalmente aqui
     if (typeof firebase !== 'undefined' && !database) {
         const app = firebase.initializeApp(firebaseConfig);
         database = firebase.database(app);
     }
 }
 
-// Escuta comandos vindos da interface visual (content.js)
+// Escuta ordens da interface visual da aba (content.js)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "START_BOT") {
         isRunning = true;
@@ -41,7 +37,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (database) database.ref('status_do_bot').set('Desligado');
     }
     if (message.action === "TICKET_PROCESSED") {
-        // Quando a aba termina de processar, espera 2s e busca o próximo
         setTimeout(procurarProximoTicket, 2000);
     }
 });
@@ -65,7 +60,6 @@ async function procurarProximoTicket() {
         const atual = snapshot.val()[idBanco];
         const numLimpo = atual.ticket.replace('#', '');
 
-        // Envia os dados do ticket encontrado para a aba do Blip executar a ação física
         if (blipTabId) {
             chrome.tabs.sendMessage(blipTabId, {
                 action: "EXECUTE_TRANSFER",
@@ -86,9 +80,9 @@ function enviarLogParaInterface(texto) {
     }
 }
 
-// Mantém o Sophos vivo direto do Background (Inabalável)
+// Manutenção da VPN ativa via Background
 setInterval(function() {
     fetch('http://sophosweb.grupoelo.com:8090/')
         .then(() => console.log('Ping Sophos via Background OK.'))
-        .catch(() => console.log('Manutenção de rede Background ativa.'));
-}, 60000); // Reduzi para 1 minuto para garantir que a VPN não derrube o Worker
+        .catch(() => console.log('Manutenção de rede ativa.'));
+}, 60000);
