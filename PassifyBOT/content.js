@@ -61,11 +61,10 @@
     let database = null;
  
     function iniciarFirebase() {
-        // Como o script local roda no escopo da extensão, checamos se o objeto global está disponível
-        const fb do Contexto = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
-        if (fb do Contexto && !database) {
-            const app = fb do Contexto.initializeApp(firebaseConfig);
-            database = fb do Contexto.database(app);
+        const fbContexto = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
+        if (fbContexto && !database) {
+            const app = fbContexto.initializeApp(firebaseConfig);
+            database = fbContexto.database(app);
         }
     }
  
