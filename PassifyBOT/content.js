@@ -47,19 +47,7 @@
  
     function setLog(text) { logDiv.innerHTML = text; }
  
-    // --- CARREGAMENTO DO SDK DO FIREBASE ---
-    if (!window.firebaseApp) {
-        const scriptApp = document.createElement('script');
-        scriptApp.src = 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js';
-        document.head.appendChild(scriptApp);
- 
-        scriptApp.onload = () => {
-            const scriptDB = document.createElement('script');
-            scriptDB.src = 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js';
-            document.head.appendChild(scriptDB);
-        };
-    }
- 
+    // Configurações do banco mantidas do original
     const firebaseConfig = {
         apiKey: "AIzaSyBNLdfRTpJbrdKOwkW4TPfK2d6lVCZxoyY",
         authDomain: "passify-2026-tf.firebaseapp.com",
@@ -73,9 +61,11 @@
     let database = null;
  
     function iniciarFirebase() {
-        if (window.firebase && !database) {
-            const app = window.firebase.initializeApp(firebaseConfig);
-            database = window.firebase.database(app);
+        // Como o script local roda no escopo da extensão, checamos se o objeto global está disponível
+        const fb do Contexto = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
+        if (fb do Contexto && !database) {
+            const app = fb do Contexto.initializeApp(firebaseConfig);
+            database = fb do Contexto.database(app);
         }
     }
  
@@ -209,12 +199,13 @@
         if (!isRunning) return;
  
         try {
-            if (!window.firebase) {
-                setLog('Carregando Firebase SDK...');
+            iniciarFirebase();
+            
+            if (!database) {
+                setLog('Aguardando inicialização do Banco...');
                 setTimeout(procurarProximoTicket, 1000);
                 return;
             }
-            iniciarFirebase();
  
             setLog('⏳ Buscando ticket pendente...');
  
