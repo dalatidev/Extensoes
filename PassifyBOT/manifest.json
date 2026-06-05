@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Passify - Motor de Automação Blip",
-  "version": "1.2",
-  "description": "Automação de triagem robusta com Firebase Local",
+  "name": "Passify - Motor de Automação Blip Pro",
+  "version": "2.0",
+  "description": "Automação de triagem resiliente de alta performance com Firebase.",
   "permissions": [
     "storage",
     "tabs",
     "activeTab",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "background": {
     "service_worker": "background.js"
