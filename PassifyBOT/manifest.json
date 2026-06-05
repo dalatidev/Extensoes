@@ -11,7 +11,11 @@
   "content_scripts": [
     {
       "matches": ["https://*.blip.ai/*"],
-      "js": ["content.js"],
+      "js": [
+        "firebase-app-compat.js",
+        "firebase-database-compat.js",
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ],
