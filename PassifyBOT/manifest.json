@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Passify - Motor de Automação Blip",
+  "version": "2026.05.29",
+  "description": "Automação de triagem corrigida para disparar filtros nativos no Blip",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.blip.ai/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {}
+}
